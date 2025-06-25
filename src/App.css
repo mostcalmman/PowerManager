@@ -1,10 +1,33 @@
 .App {
   text-align: center;
+  position: relative;
+  min-height: 100vh;
+}
+
+.App-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 5px;
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 8vmin;
   pointer-events: none;
+  margin: 0;
+}
+
+.App-logo-text {
+  font-size: calc(10px + 2vmin);
+  font-weight: bold;
+  color: #61dafb;
+}
+
+.App-author {
+  font-size: 18px;
+  margin: 0 0 20px 0;
+  color: #6fb4cd;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -14,14 +37,16 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 20px;
   font-size: calc(10px + 2vmin);
   color: white;
+  position: relative;
 }
 
 .App-link {

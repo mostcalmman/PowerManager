@@ -1,0 +1,95 @@
+.search-engine-selector {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  min-width: 350px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-engine-selector h2 {
+  margin: 0 0 25px 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.selector-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: center;
+}
+
+.engine-dropdown {
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  min-width: 180px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.engine-dropdown:hover {
+  border-color: #61dafb;
+  box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.1);
+}
+
+.engine-dropdown:focus {
+  border-color: #61dafb;
+  box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2);
+}
+
+.go-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #61dafb 0%, #4299e1 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.go-button:hover {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(97, 218, 251, 0.4);
+}
+
+.go-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(97, 218, 251, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .search-engine-selector {
+    min-width: 300px;
+    padding: 20px;
+  }
+  
+  .selector-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .engine-dropdown,
+  .go-button {
+    width: 100%;
+  }
+}

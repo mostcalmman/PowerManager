@@ -1,22 +1,17 @@
 import logo from './logo.svg';
 import './App.css';
+import SearchEngineSelector from './components/SearchEngineSelector';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <div className="App-logo-container">
+          <img src={logo} className="App-logo" alt="logo" />
+          <span className="App-logo-text">Search Engine Selector by React</span>
+        </div>
+        <p className="App-author">Coded by LSR</p>
+        <SearchEngineSelector />
       </header>
     </div>
   );
