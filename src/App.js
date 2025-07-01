@@ -19,22 +19,24 @@ const components = [
     key: 'device',
   },
   {
-    label: '提问',
+    label: '分析',
     key: 'ask',
   },
 ];
 
 function SelectApp(props) {
   const currentPage = props.currentPage;
+  const onNavigate = props.onNavigate;
+  
   switch (currentPage) {
     case 'homepage':
-      return <Homepage />;
+      return <Homepage onNavigate={onNavigate} />;
     case 'device':
       return <Device />;
     case 'ask':
       return <Ask />;
     default:
-      return <Homepage />;
+      return <Homepage onNavigate={onNavigate} />;
   }
 }
 
@@ -42,26 +44,35 @@ function SelectApp(props) {
 
 function App() {
   const [current, setCurrent] = useState('homepage');
+  
   const onClick = (e) => {
     console.log('click ', e);
     setCurrent(e.key);
   };
+  
+  const handleNavigate = (page) => {
+    setCurrent(page);
+  };
+  
   return (
     <Layout>
       <Header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Menu
           theme='dark'
           mode='horizontal'
-          defaultSelectedKeys={['homepage']}
+          selectedKeys={[current]}
           items={components}
           onClick={onClick}
           style={{ minWidth: 'auto', border: 'none' }}
         />
       </Header>
 
-      <SelectApp currentPage={current} />
+      <SelectApp currentPage={current} onNavigate={handleNavigate} />
 
-      <Footer style={{ textAlign: 'center' }}>
+      <Footer style={{ 
+          textAlign: 'center',
+          // background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}>
         Power Manager©2025
       </Footer>
     </Layout>

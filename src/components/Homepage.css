@@ -1,0 +1,238 @@
+.homepage-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: calc(100vh - 132px); /* 减去header和footer的高度 */
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 40px 20px 20px 20px;
+}
+
+.clock-container {
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+.welcome-title {
+  color: #1a1a1a;
+  font-size: 3.5rem;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Arial', sans-serif;
+  line-height: 1.2;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background-color: #1a1a1a;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.clock {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  margin: 0 auto;
+}
+
+.time-display {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 2px;
+}
+
+.date-display {
+  font-size: 1rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+/* 卡片容器 */
+.cards-container {
+  margin-top: 60px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+/* 功能卡片样式 */
+.feature-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-icon-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.card-icon {
+  font-size: 3rem;
+  color: white;
+  z-index: 1;
+  position: relative;
+  margin: 5px 0 0 5px;
+}
+
+.card-text {
+  font-size: 1.2rem;
+  color: white;
+  font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'SF Pro Display', 'Arial', sans-serif;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.feature-card .ant-card-meta-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.feature-card .ant-card-meta-description {
+  color: #7f8c8d;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2.8rem;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+  }
+  
+  .time-display {
+    font-size: 2.5rem;
+  }
+  
+  .clock {
+    width: 400px;
+    margin: 0 auto;
+    padding: 15px;
+  }
+  
+  .clock-container {
+    padding: 20px;
+  }
+  
+  .homepage-container {
+    padding: 30px 20px 20px 20px;
+  }
+  
+  .cards-container {
+    margin-top: 40px;
+    padding: 0 10px;
+  }
+  
+  .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 6px;
+  }
+  
+  .card-text {
+    font-size: 1rem;
+    padding: 5px 10px;
+    min-width: 100px;
+  }
+  
+  .card-icon-container {
+    height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-title {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  
+  .time-display {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  
+  .date-display {
+    font-size: 0.9rem;
+  }
+  
+  .clock {
+    width: 400px;
+    margin: 0 auto;
+    padding: 12px;
+  }
+  
+  .homepage-container {
+    padding: 20px 15px 15px 15px;
+  }
+  
+  .cards-container {
+    margin-top: 30px;
+    padding: 0 5px;
+  }
+  
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    min-width: 90px;
+  }
+  
+  .card-icon-container {
+    height: 80px;
+  }
+  
+  .feature-card .ant-card-meta-title {
+    font-size: 1.1rem;
+  }
+  
+  .feature-card .ant-card-meta-description {
+    font-size: 0.85rem;
+  }
+}
