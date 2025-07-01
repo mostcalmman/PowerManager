@@ -3,7 +3,7 @@ import { Row, Col, Card } from 'antd';
 import { ThunderboltOutlined, DesktopOutlined, BarChartOutlined } from '@ant-design/icons';
 import './Homepage.css';
 
-function Homepage({ onNavigate }) {
+function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -31,6 +31,14 @@ function Homepage({ onNavigate }) {
   const handleAskClick = () => {
     onNavigate('ask');
   }
+
+  // 计算总功率
+  const totalPower = () => {
+    if (deviceNumber == 0) {
+      return 0;
+    }
+    return power.reduce((total, p) => total + p, 0);
+  };
 
   return (
     <div className="homepage-container">
@@ -64,7 +72,7 @@ function Homepage({ onNavigate }) {
                 <div className="card-icon-container">
                   <ThunderboltOutlined className="card-icon" />
                   <div className="card-text">
-                    总功率: 100W
+                    总功率: {totalPower()}W
                   </div>
                 </div>
               }
@@ -85,7 +93,7 @@ function Homepage({ onNavigate }) {
                 <div className="card-icon-container">
                   <DesktopOutlined className="card-icon" />
                   <div className="card-text">
-                    在线设备数: 1
+                    在线设备数: {deviceNumber}
                   </div>
                 </div>
               }
@@ -106,7 +114,7 @@ function Homepage({ onNavigate }) {
                 <div className="card-icon-container">
                   <BarChartOutlined className="card-icon" />
                   <div className="card-text">
-                    温湿度: 25°C, 60%
+                    温湿度: {temperature}°C, {humidity}%
                   </div>
                 </div>
               }
