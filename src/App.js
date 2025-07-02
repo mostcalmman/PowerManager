@@ -1,12 +1,11 @@
 import './App.css';
 
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 
 import Homepage from './components/Homepage';
 import Device from './components/Device';
 import Ask from './components/Ask';
 import { fetchCloudDeviceData } from './Cloud/huaweiCloudService';
-import { fetchDeviceDataSmart } from './Cloud/cloudServiceFallback';
 
 import { Flex, Layout, Menu } from 'antd';
 const { Header, Footer, Sider, Content } = Layout;
@@ -81,22 +80,17 @@ function App() {
   const [temperature, setTemperature] = useState(25);
   const [humidity, setHumidity] = useState(60);
   
+  // 用于防止重复调用的标记
+  const hasCalledAPI = useRef(false);
+
   // 从云端获取数据的函数
   const fetchDataFromCloud = async () => {
     try {
-      console.log('开始从云端获取数据...');
+      console.log('开始从华为云获取数据...');
       
-      let deviceData;
-      
-      try {
-        // 首先尝试直接调用华为云服务
-        deviceData = await fetchCloudDeviceData();
-        console.log('直接从华为云获取数据成功');
-      } catch (directError) {
-        console.warn('直接调用华为云服务失败，使用备选方案:', directError);
-        // 如果直接调用失败，使用智能备选方案
-        deviceData = await fetchDeviceDataSmart();
-      }
+      // 直接调用华为云服务
+      const deviceData = await fetchCloudDeviceData();
+      console.log('华为云获取数据成功');
       
       // 更新状态
       setDeviceNumber(deviceData.deviceNumber);
@@ -111,20 +105,28 @@ function App() {
         humidity: deviceData.humidity,
         testData: deviceData.testData
       });
+    } 
+    catch (error) {
+      console.log('华为云调用失败，原因:', error.message || error);
+      console.error('华为云调用失败详细信息:', error);
       
-    } catch (error) {
-      console.error('获取云端数据失败:', error);
-      // 设置默认值以防止应用崩溃
+      // 直接使用默认值
       setDeviceNumber(0);
       setPower([]);
       setTemperature(25);
       setHumidity(60);
+      
+      console.log('已设置默认值');
     }
   };
 
   // 组件挂载时获取数据
   React.useEffect(() => {
-    fetchDataFromCloud();
+    // 防止在 StrictMode 下重复调用
+    if (!hasCalledAPI.current) {
+      hasCalledAPI.current = true;
+      fetchDataFromCloud(); // 直接调用获取数据函数
+    }
   }, []);
   
   const onClick = (e) => {

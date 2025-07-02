@@ -1,7 +1,9 @@
 // 华为云服务配置
 const HUAWEI_CLOUD_CONFIG = {
-  IAM_URL: "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens",
-  IOT_BASE_URL: "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot",
+  // IAM_URL: "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens",
+  // IOT_BASE_URL: "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot",
+  IAM_URL: "/api/iam/v3/auth/tokens", // 使用代理路径
+  IOT_BASE_URL: "/api/iot/v5/iot", // 使用代理路径
   INSTANCE_ID: "02108a22-911a-45de-bbae-186e4331a8b8",
   DOMAIN_NAME: "thecalmman",
   USERNAME: "L610",
@@ -39,6 +41,7 @@ export async function getHuaweiToken() {
 
   try {
     const response = await fetch(HUAWEI_CLOUD_CONFIG.IAM_URL, {
+      // mode: 'no-cors',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf8'
@@ -165,32 +168,36 @@ export function parseDeviceDataFromShadow(shadowData) {
       power: [],
       temperature: 25,
       humidity: 60,
-      testData: null
     };
 
-    // 如果影子中有 Test 数据，将其设置为 deviceNumber
-    if (shadowData && shadowData.shadow && shadowData.shadow[0] && shadowData.shadow[0].reported) {
-      const reportedData = shadowData.shadow[0].reported;
-      
-      // 查找 Test 数据
-      if (reportedData.Test !== undefined) {
-        deviceData.testData = reportedData.Test;
-        deviceData.deviceNumber = reportedData.Test; // 将 Test 数据设置为 deviceNumber
-      }
-      
-      // 为其他数据预留接口，可以根据实际数据结构添加
-      if (reportedData.power !== undefined) {
-        deviceData.power = Array.isArray(reportedData.power) ? reportedData.power : [reportedData.power];
-      }
-      
-      if (reportedData.temperature !== undefined) {
-        deviceData.temperature = reportedData.temperature;
-      }
-      
-      if (reportedData.humidity !== undefined) {
-        deviceData.humidity = reportedData.humidity;
-      }
+    if(shadowData && shadowData.shadow){
+      // 将Test设置为DeviceNumber
+      deviceData.deviceNumber = shadowData.shadow[0].reported.properties.Test || 0;
     }
+
+    // 如果影子中有 Test 数据，将其设置为 deviceNumber
+    // if (shadowData && shadowData.shadow && shadowData.shadow[0] && shadowData.shadow[0].reported) {
+    //   const reportedData = shadowData.shadow[0].reported;
+      
+    //   // 查找 Test 数据
+    //   if (reportedData.Test !== undefined) {
+    //     deviceData.testData = reportedData.Test;
+    //     deviceData.deviceNumber = reportedData.Test; // 将 Test 数据设置为 deviceNumber
+    //   }
+      
+    //   // 为其他数据预留的接口，目前没有作用
+    //   if (reportedData.power !== undefined) {
+    //     deviceData.power = Array.isArray(reportedData.power) ? reportedData.power : [reportedData.power];
+    //   }
+      
+    //   if (reportedData.temperature !== undefined) {
+    //     deviceData.temperature = reportedData.temperature;
+    //   }
+      
+    //   if (reportedData.humidity !== undefined) {
+    //     deviceData.humidity = reportedData.humidity;
+    //   }
+    // }
 
     return deviceData;
   } catch (error) {
@@ -200,7 +207,6 @@ export function parseDeviceDataFromShadow(shadowData) {
       power: [],
       temperature: 25,
       humidity: 60,
-      testData: null
     };
   }
 }
@@ -213,6 +219,8 @@ export async function fetchCloudDeviceData() {
   try {
     // 1. 获取Token
     const token = await getHuaweiToken();
+    console.log('获取到的Token:', token);
+    console.log("\n\n");
     
     // 2. 获取设备影子
     const shadowData = await getDeviceShadow(token);
