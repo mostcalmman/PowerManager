@@ -12,6 +12,7 @@ const createWindow = () => {
       contextIsolation: false,
     }
   })
+  win.setMenu(null);
   if (isDev) {
     // 在开发模式下加载 React 开发服务器
     // win.loadURL('http://localhost:3000');
