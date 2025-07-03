@@ -18,8 +18,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "devstart": "react-scripts start",
-    "start": "electron-forge start",
+    "start": "react-scripts start",
+    "devstart": "electron .",
+    "forgestart": "electron-forge start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
