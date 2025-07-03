@@ -1,9 +1,11 @@
 // 华为云服务配置
 const HUAWEI_CLOUD_CONFIG = {
-  // IAM_URL: "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens",
-  // IOT_BASE_URL: "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot",
-  IAM_URL: "/api/iam/v3/auth/tokens", // 使用代理路径
-  IOT_BASE_URL: "/api/iot/v5/iot", // 使用代理路径
+  IAM_URL: process.env.NODE_ENV === 'production' 
+    ? "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens" 
+    : "/api/iam/v3/auth/tokens", // 使用代理路径
+  IOT_BASE_URL: process.env.NODE_ENV === 'production' 
+    ? "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot" 
+    : "/api/iot/v5/iot", // 使用代理路径
   INSTANCE_ID: "02108a22-911a-45de-bbae-186e4331a8b8",
   DOMAIN_NAME: "thecalmman",
   USERNAME: "L610",
