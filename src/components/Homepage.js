@@ -3,12 +3,18 @@ import { Row, Col, Card } from 'antd';
 import { ThunderboltOutlined, DesktopOutlined, BarChartOutlined } from '@ant-design/icons';
 import './Homepage.css';
 
+import { fetchCloudDeviceData } from '../Cloud/huaweiCloudService';
+
 function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [temperatureShow, setTemperatureShow] = useState(temperature || 0); // 初始化温度状态
+  const [humidityShow, setHumidityShow] = useState(humidity || 0); // 初始化湿度状态
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
+      setTemperatureShow(temperature); // 更新温度状态
+      setHumidityShow(humidity); // 更新湿度状态
     }, 1000);
 
     // 清理定时器
@@ -114,7 +120,7 @@ function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
                 <div className="card-icon-container">
                   <BarChartOutlined className="card-icon" />
                   <div className="card-text">
-                    温湿度: {temperature}°C, {humidity}%
+                    温湿度: {temperatureShow}°C, {humidityShow}%
                   </div>
                 </div>
               }

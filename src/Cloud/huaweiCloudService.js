@@ -173,8 +173,11 @@ export function parseDeviceDataFromShadow(shadowData) {
     };
 
     if(shadowData && shadowData.shadow){
-      // 将Test设置为DeviceNumber
-      deviceData.deviceNumber = shadowData.shadow[0].reported.properties.Test || 0;
+      // 将DeviceInfo.deviceNumber设置为DeviceNumber
+      deviceData.deviceNumber = shadowData.shadow[0].reported.properties.DeviceInfo.DeviceNumber || 0;
+      deviceData.power[0] = shadowData.shadow[0].reported.properties.DeviceInfo.Device1.Power || 0;
+      deviceData.temperature = shadowData.shadow[0].reported.properties.Temperature || 25;
+      deviceData.humidity = shadowData.shadow[0].reported.properties.Humidity || 60;
     }
 
     // 如果影子中有 Test 数据，将其设置为 deviceNumber

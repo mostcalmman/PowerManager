@@ -120,12 +120,22 @@ function App() {
     }
   };
 
-  // 组件挂载时获取数据
+  // 组件挂载时获取数据并设置定时器
   React.useEffect(() => {
     // 防止在 StrictMode 下重复调用
     if (!hasCalledAPI.current) {
       hasCalledAPI.current = true;
       fetchDataFromCloud(); // 直接调用获取数据函数
+      
+      // 设置定时器，每隔1秒刷新一次数据
+      const interval = setInterval(() => {
+        fetchDataFromCloud();
+      }, 1000);
+      
+      // 清理函数：组件卸载时清除定时器
+      return () => {
+        clearInterval(interval);
+      };
     }
   }, []);
   
