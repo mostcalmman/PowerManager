@@ -3,23 +3,22 @@ import { Row, Col, Card } from 'antd';
 import { ThunderboltOutlined, DesktopOutlined, BarChartOutlined } from '@ant-design/icons';
 import './Homepage.css';
 
-import { fetchCloudDeviceData } from '../Cloud/huaweiCloudService';
-
-function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
+function Homepage({ onNavigate ,onlineDeviceNumber, power, temperature, humidity }) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [temperatureShow, setTemperatureShow] = useState(temperature || 0); // 初始化温度状态
-  const [humidityShow, setHumidityShow] = useState(humidity || 0); // 初始化湿度状态
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-      setTemperatureShow(temperature); // 更新温度状态
-      setHumidityShow(humidity); // 更新湿度状态
     }, 1000);
 
     // 清理定时器
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    console.log('Homepage收到新的数据');
+
+  }, [temperature, humidity, onlineDeviceNumber, power]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('zh-CN', {
@@ -37,14 +36,6 @@ function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
   const handleAskClick = () => {
     onNavigate('ask');
   }
-
-  // 计算总功率
-  const totalPower = () => {
-    if (deviceNumber == 0) {
-      return 0;
-    }
-    return power.reduce((total, p) => total + p, 0);
-  };
 
   return (
     <div className="homepage-container">
@@ -78,7 +69,7 @@ function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
                 <div className="card-icon-container">
                   <ThunderboltOutlined className="card-icon" />
                   <div className="card-text">
-                    总功率: {totalPower()}W
+                    总功率: {(onlineDeviceNumber === 0) ? 0 : power.reduce((total, p) => total + p, 0)}W
                   </div>
                 </div>
               }
@@ -99,7 +90,7 @@ function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
                 <div className="card-icon-container">
                   <DesktopOutlined className="card-icon" />
                   <div className="card-text">
-                    在线设备数: {deviceNumber}
+                    在线设备数: {onlineDeviceNumber}
                   </div>
                 </div>
               }
@@ -120,7 +111,7 @@ function Homepage({ onNavigate ,deviceNumber, power, temperature, humidity }) {
                 <div className="card-icon-container">
                   <BarChartOutlined className="card-icon" />
                   <div className="card-text">
-                    温湿度: {temperatureShow}°C, {humidityShow}%
+                    温湿度: {temperature}°C, {humidity}%
                   </div>
                 </div>
               }

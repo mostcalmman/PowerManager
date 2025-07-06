@@ -6,12 +6,86 @@
   min-height: 100vh;
 }
 
+/* 卡片颜色样式 */
+.device-card {
+  transition: all 0.3s ease;
+}
+
+.device-card.card-gray {
+  background-color: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  border-left: 4px solid #8c8c8c;
+}
+
+.device-card.card-yellow {
+  background-color: #fffbe6 !important;
+  border-color: #fadb14 !important;
+  border-left: 4px solid #faad14;
+}
+
+.device-card.card-green {
+  background-color: #f6ffed !important;
+  border-color: #52c41a !important;
+  border-left: 4px solid #52c41a;
+}
+
+/* 保持原有的在线离线样式作为备用 */
 .device-card.online {
   border-left: 4px solid #52c41a;
+  background-color: #f6ffed !important;
+  transition: all 0.3s ease;
 }
 
 .device-card.offline {
   border-left: 4px solid #ff4d4f;
+  background-color: #fff1f0 !important;
+  transition: all 0.3s ease;
+}
+
+/* 图标和文字颜色 */
+.device-icon-gray {
+  color: #8c8c8c !important;
+}
+
+.device-icon-yellow {
+  color: #faad14 !important;
+}
+
+.device-icon-green {
+  color: #52c41a !important;
+}
+
+.device-text-gray {
+  color: #8c8c8c !important;
+}
+
+.device-text-yellow {
+  color: #faad14 !important;
+}
+
+.device-text-green {
+  color: #52c41a !important;
+}
+
+/* 设备类型文字样式 */
+.device-type-text {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+/* 功率文字样式 */
+.device-power-text {
+  font-size: 16px !important;
+}
+
+/* 功率图标样式 */
+.device-power-icon {
+  color: #faad14 !important;
+}
+
+.device-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .single-card-container {

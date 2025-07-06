@@ -166,52 +166,51 @@ export function parseDeviceDataFromShadow(shadowData) {
     // 根据实际的设备影子数据结构来解析
     // 这里需要根据实际返回的数据结构进行调整
     const deviceData = {
-      deviceNumber: 0,
-      power: [],
+      pluginNumber: 1,
+      onlineDeviceNumber: 0,
       temperature: 25,
       humidity: 60,
+      power: [0],
+      deviceClass: ["插孔断开"],
+      pluginOnOff: [0],
     };
 
+    // console.log('parseDeviceDataFromShadow - 原始影子数据:', JSON.stringify(shadowData, null, 2));
+
     if(shadowData && shadowData.shadow){
-      // 将DeviceInfo.deviceNumber设置为DeviceNumber
-      deviceData.deviceNumber = shadowData.shadow[0].reported.properties.DeviceInfo.DeviceNumber || 0;
-      deviceData.power[0] = shadowData.shadow[0].reported.properties.DeviceInfo.Device1.Power || 0;
+      deviceData.pluginNumber = shadowData.shadow[0].reported.properties.PluginNumber || 1;
+      deviceData.onlineDeviceNumber = shadowData.shadow[0].reported.properties.PluginInfo.OnlineDeviceNumber || 0; // 等于联通且有功率数据的插孔数
+      var i = 0;
+      for (i = 0; i < deviceData.pluginNumber; i++) {
+        deviceData.pluginOnOff[i] = shadowData.shadow[0].reported.properties.PluginInfo.id[i].OnOff || 0;
+        deviceData.power[i] = shadowData.shadow[0].reported.properties.PluginInfo.id[i].Power || 0;
+        deviceData.deviceClass[i] = shadowData.shadow[0].reported.properties.PluginInfo.id[i].Class || "插孔断开";
+      }
       deviceData.temperature = shadowData.shadow[0].reported.properties.Temperature || 25;
       deviceData.humidity = shadowData.shadow[0].reported.properties.Humidity || 60;
-    }
 
-    // 如果影子中有 Test 数据，将其设置为 deviceNumber
-    // if (shadowData && shadowData.shadow && shadowData.shadow[0] && shadowData.shadow[0].reported) {
-    //   const reportedData = shadowData.shadow[0].reported;
-      
-    //   // 查找 Test 数据
-    //   if (reportedData.Test !== undefined) {
-    //     deviceData.testData = reportedData.Test;
-    //     deviceData.deviceNumber = reportedData.Test; // 将 Test 数据设置为 deviceNumber
-    //   }
-      
-    //   // 为其他数据预留的接口，目前没有作用
-    //   if (reportedData.power !== undefined) {
-    //     deviceData.power = Array.isArray(reportedData.power) ? reportedData.power : [reportedData.power];
-    //   }
-      
-    //   if (reportedData.temperature !== undefined) {
-    //     deviceData.temperature = reportedData.temperature;
-    //   }
-      
-    //   if (reportedData.humidity !== undefined) {
-    //     deviceData.humidity = reportedData.humidity;
-    //   }
-    // }
+      console.log('parseDeviceDataFromShadow - 解析后的数据:', {
+        pluginOnOff: deviceData.pluginOnOff,
+        pluginNumber: deviceData.pluginNumber,
+        onlineDeviceNumber: deviceData.onlineDeviceNumber,
+        temperature: deviceData.temperature,
+        humidity: deviceData.humidity,
+        power: deviceData.power,
+        deviceClass: deviceData.deviceClass
+      });
+    }
 
     return deviceData;
   } catch (error) {
     console.error('解析设备影子数据失败:', error);
     return {
-      deviceNumber: 0,
-      power: [],
+      pluginNumber: 1,
+      onlineDeviceNumber: 0,
       temperature: 25,
       humidity: 60,
+      power: [0],
+      deviceClass: ["插孔断开"],
+      pluginOnOff: [0],
     };
   }
 }

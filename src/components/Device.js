@@ -1,69 +1,152 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Statistic, Row, Col, Badge, Typography, Space, Divider, Button, Switch } from 'antd';
+import { Card, Statistic, Row, Col, Badge, Typography, Space, Divider, Switch } from 'antd';
 import { ThunderboltOutlined, PoweroffOutlined, WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
+import { sendDeviceMessage } from '../Cloud/huaweiCloudService';
 import './Device.css';
 
-function Device() {
-  const [deviceNumber, setDeviceNumber] = useState(0);
-  const [pluginNumber, setPluginNumber] = useState(1);
-  const [deviceInfo, setDeviceInfo] = useState({});
+const { Title } = Typography;
 
-  const { Title } = Typography;
+// 插孔数决定显示的卡片数量
+// 卡片右上角的开关决定插孔通断
+// 情况1, 插孔断开, 设备类型显示插孔断开, 功率显示0, 卡片为灰色
+// 情况2, 插孔开启, 数据中功率为0, 设备类型显示无设备插入或设备未工作, 卡片为黄色
+// 情况3, 插孔开启, 数据中功率非0, 设备类型显示数据中的对应类型, 卡片为绿色
 
-  // 模拟云端数据接口
-  const fetchDeviceData = async () => {
-    // TODO: 替换为真实的云端API调用
+function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass, pluginNumber, pluginOnOff }) {
+
+  // 处理开关按钮点击
+  const handleSwitchToggle = async (deviceId, isOn) => {
+    console.log(`插孔 ${deviceId} 切换至: ${isOn ? '开启' : '关闭'}`);
+    
+    // 直接调用云端API切换插孔状态，不维护本地状态
     try {
-      // 模拟云端下发的JSON数据格式
-      const mockData = {
-        pluginNumber: 1,
-        deviceNumber: 1,
-        deviceInfo: {
-          "1": { isOpen: 1, power: 25.5, deviceType: "智能灯泡" },
-          
-        }
-      };
-      
-      setPluginNumber(mockData.pluginNumber);
-      setDeviceNumber(mockData.deviceNumber);
-      setDeviceInfo(mockData.deviceInfo);
+      await sendDeviceCommand(deviceId, isOn ? 'ON' : 'OFF');
+      console.log(`插孔 ${deviceId} 状态切换成功`);
     } catch (error) {
-      console.error('获取设备数据失败:', error);
+      console.error(`插孔 ${deviceId} 状态切换失败:`, error);
+      // 可以在这里显示错误提示给用户
     }
   };
 
-  // 处理开关按钮点击
-  const handleSwitchToggle = (deviceId, isOn) => {
-    console.log(`设备 ${deviceId} 切换至: ${isOn ? '开启' : '关闭'}`);
-    // TODO: 调用云端API切换设备状态
+  // 发送设备命令的接口函数
+  const sendDeviceCommand = async (deviceId, command) => {
+    // TODO: 实现发送设备命令的逻辑
+    // 这里应该调用华为云服务发送命令
+    console.log(`发送命令到设备 ${deviceId}: ${command}`);
+    
+    // 预留接口：可以在这里调用华为云API发送命令
+    // 例如：await sendDeviceMessage(token, { deviceId, command });
+    
+    // 模拟网络延迟
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // 这里可以返回操作结果
+    return { success: true, deviceId, command };
   };
 
   // 渲染设备卡片
   const renderDeviceCard = (index) => {
-    const deviceId = (index + 1).toString();
-    const device = deviceInfo[deviceId];
-    const isOpen = device ? device.isOpen === 1 : false;
-    const power = device ? device.power : 0;
-    const deviceType = device ? device.deviceType : '无设备插入';
+    const pluginIndex = index; // 数组索引，从0开始
+    const deviceId = index + 1; // 插孔编号，从1开始显示
+    
+    // 非空检查和默认值处理
+    const isOpen = pluginOnOff && pluginOnOff[pluginIndex] !== undefined ? pluginOnOff[pluginIndex] : false;
+    const devicePower = power && power[pluginIndex] ? power[pluginIndex] : 0;
+    const deviceType = deviceClass && deviceClass[pluginIndex] ? deviceClass[pluginIndex] : null;
+    
+    // 根据云端数据确定卡片颜色和设备类型显示
+    let cardColor, displayDeviceType;
+    
+    if (!isOpen) {
+      // 情况1: 插孔断开, 设备类型显示插孔断开, 功率显示0, 卡片为灰色
+      cardColor = 'gray';
+      displayDeviceType = "插孔断开";
+    } else if (devicePower > 0 && deviceType) {
+      // 情况3: 插孔开启, 数据中功率非0, 设备类型显示数据中的对应类型, 卡片为绿色
+      cardColor = 'green';
+      // TODO: 把英文的deviceType转换为中文
+      displayDeviceType = deviceType;
+    } else {
+      // 情况2: 插孔开启, 但是数据中功率为0, 设备类型显示无设备插入或设备未工作, 卡片为黄色
+      cardColor = 'yellow';
+      displayDeviceType = "无设备插入或设备未工作";
+    }
+    
+    // 获取卡片样式类名
+    const getCardClassName = () => {
+      const baseClass = `device-card ${pluginNumber === 1 ? 'single-card' : ''}`;
+      switch (cardColor) {
+        case 'gray':
+          return `${baseClass} card-gray`;
+        case 'yellow':
+          return `${baseClass} card-yellow`;
+        case 'green':
+          return `${baseClass} card-green`;
+        default:
+          return baseClass;
+      }
+    };
+    
+    // 获取图标样式类名
+    const getIconClassName = () => {
+      switch (cardColor) {
+        case 'gray':
+          return 'device-icon-gray';
+        case 'yellow':
+          return 'device-icon-yellow';
+        case 'green':
+          return 'device-icon-green';
+        default:
+          return 'device-icon-gray';
+      }
+    };
+    
+    // 获取文字样式类名
+    const getTextClassName = () => {
+      switch (cardColor) {
+        case 'gray':
+          return 'device-text-gray';
+        case 'yellow':
+          return 'device-text-yellow';
+        case 'green':
+          return 'device-text-green';
+        default:
+          return 'device-text-gray';
+      }
+    };
+    
+    // 获取图标组件
+    const getIcon = () => {
+      const className = getIconClassName();
+      switch (cardColor) {
+        case 'gray':
+          return <DisconnectOutlined className={className} />;
+        case 'yellow':
+          return <PoweroffOutlined className={className} />;
+        case 'green':
+          return <WifiOutlined className={className} />;
+        default:
+          return <PoweroffOutlined className={className} />;
+      }
+    };
     
     return (
-      <Col span={pluginNumber === 1 ? 24 : 12} key={deviceId}>
+      <Col span={pluginNumber === 1 ? 24 : pluginNumber === 2 ? 12 : 8} key={deviceId}>
         <div className={pluginNumber === 1 ? 'single-card-container' : ''}>
           <Card 
-            className={`device-card ${isOpen ? 'online' : 'offline'} ${pluginNumber === 1 ? 'single-card' : ''}`}
+            className={getCardClassName()}
             title={
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>插孔 {deviceId}</span>
-                {/* <Badge 
-                  status={isOnline ? 'success' : 'error'} 
-                  text={isOnline ? '在线' : '离线'}
-                /> */}
+                <Badge 
+                  status={cardColor === 'green' ? 'success' : cardColor === 'yellow' ? 'warning' : 'error'} 
+                  text={isOpen ? '开启' : '关闭'}
+                />
               </div>
             }
             extra={
               <Switch
                 checked={isOpen}
-                disabled={!device}
                 onChange={(checked) => handleSwitchToggle(deviceId, checked)}
                 checkedChildren="开"
                 unCheckedChildren="关"
@@ -73,13 +156,15 @@ function Device() {
           >
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {isOpen ? <WifiOutlined style={{ color: '#52c41a' }} /> : <DisconnectOutlined style={{ color: '#ff4d4f' }} />}
-                <span style={{ fontSize: '16px', fontWeight: 500 }}>{deviceType}</span>
+                {getIcon()}
+                <span className={`device-type-text ${getTextClassName()}`}>
+                  {displayDeviceType}
+                </span>
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ThunderboltOutlined style={{ color: '#faad14' }} />
-                <span style={{ fontSize: '16px' }}>功率: {isOpen ? power : 0}W</span>
+                <ThunderboltOutlined className="device-power-icon" />
+                <span className="device-power-text">功率: {isOpen ? devicePower : 0}W</span>
               </div>
             </Space>
           </Card>
@@ -88,12 +173,17 @@ function Device() {
     );
   };
 
+  // 使用 useEffect 来监听 props 变化
   useEffect(() => {
-    fetchDeviceData();
-    // 可以设置定时器定期更新数据
-    const interval = setInterval(fetchDeviceData, 1000); // 每1秒更新一次
-    return () => clearInterval(interval);
-  }, []);
+    console.log('Device组件收到新数据:', {
+      pluginNumber,
+      power,
+      deviceClass,
+      temperature,
+      humidity,
+      pluginOnOff
+    });
+  }, [pluginNumber, power, deviceClass, temperature, humidity, pluginOnOff]);
 
   return (
     <div className="device-container">
@@ -125,7 +215,7 @@ function Device() {
             <Card>
               <Statistic
                 title="在线设备"
-                value={deviceNumber}
+                value={onlineDeviceNumber}
                 prefix={<WifiOutlined />}
                 valueStyle={{ color: '#52c41a' }}
               />
