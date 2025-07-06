@@ -3,9 +3,11 @@ const HUAWEI_CLOUD_CONFIG = {
   IAM_URL: process.env.NODE_ENV === 'production' 
     ? "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens" 
     : "/api/iam/v3/auth/tokens", // 使用代理路径
+    // : "https://iam.cn-north-4.myhuaweicloud.com/v3/auth/tokens",
   IOT_BASE_URL: process.env.NODE_ENV === 'production' 
     ? "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot" 
     : "/api/iot/v5/iot", // 使用代理路径
+    // : "https://3b42e90b15.st1.iotda-app.cn-north-4.myhuaweicloud.com/v5/iot",
   INSTANCE_ID: "02108a22-911a-45de-bbae-186e4331a8b8",
   DOMAIN_NAME: "thecalmman",
   USERNAME: "L610",
@@ -128,9 +130,14 @@ export async function getDeviceShadow(token) {
  * @param {string} message - 消息内容
  * @returns {Promise<Object>} 响应结果
  */
-export async function sendDeviceMessage(token, message) {
+export async function sendDeviceMessage(deviceId, command) {
   const url = `${HUAWEI_CLOUD_CONFIG.IOT_BASE_URL}/${HUAWEI_CLOUD_CONFIG.PROJECT_ID}/devices/${HUAWEI_CLOUD_CONFIG.DEVICE_ID}/messages`;
-  
+
+  console.log('准备发送消息');
+  const token = await getHuaweiToken();
+  console.log('获取到的Token:', token);
+  console.log("\n\n");
+
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -140,7 +147,10 @@ export async function sendDeviceMessage(token, message) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: message
+        'message': {
+          'deviceId': deviceId,
+          'command': command
+        }
       })
     });
 
@@ -241,3 +251,6 @@ export async function fetchCloudDeviceData() {
     throw error;
   }
 }
+
+// console.log("发送设备消息测试: 插孔1, 开启状态");
+// sendDeviceMessage(1, 1)

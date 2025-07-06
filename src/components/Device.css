@@ -83,7 +83,16 @@
   color: #faad14 !important;
 }
 
-.device-card:hover {
+.button {
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  margin-right: -10px;
+}
+
+.button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

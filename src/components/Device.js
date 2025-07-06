@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Statistic, Row, Col, Badge, Typography, Space, Divider, Switch } from 'antd';
+import { Card, Statistic, Row, Col, Badge, Typography, Space, Divider, Switch, Button, message } from 'antd';
 import { ThunderboltOutlined, PoweroffOutlined, WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
 import { sendDeviceMessage } from '../Cloud/huaweiCloudService';
 import './Device.css';
@@ -13,35 +13,51 @@ const { Title } = Typography;
 // 情况3, 插孔开启, 数据中功率非0, 设备类型显示数据中的对应类型, 卡片为绿色
 
 function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass, pluginNumber, pluginOnOff }) {
+  // 消息组件
+  const [messageApi, contextHolder] = message.useMessage();
+  const key = 'sending';
 
-  // 处理开关按钮点击
-  const handleSwitchToggle = async (deviceId, isOn) => {
-    console.log(`插孔 ${deviceId} 切换至: ${isOn ? '开启' : '关闭'}`);
-    
-    // 直接调用云端API切换插孔状态，不维护本地状态
-    try {
-      await sendDeviceCommand(deviceId, isOn ? 'ON' : 'OFF');
-      console.log(`插孔 ${deviceId} 状态切换成功`);
-    } catch (error) {
-      console.error(`插孔 ${deviceId} 状态切换失败:`, error);
-      // 可以在这里显示错误提示给用户
-    }
+  const sending = () => {
+    messageApi.open({
+      key,
+      type: 'loading',
+      content: '正在发送命令...',
+    });
   };
 
-  // 发送设备命令的接口函数
-  const sendDeviceCommand = async (deviceId, command) => {
-    // TODO: 实现发送设备命令的逻辑
-    // 这里应该调用华为云服务发送命令
-    console.log(`发送命令到设备 ${deviceId}: ${command}`);
-    
-    // 预留接口：可以在这里调用华为云API发送命令
-    // 例如：await sendDeviceMessage(token, { deviceId, command });
-    
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // 这里可以返回操作结果
-    return { success: true, deviceId, command };
+  const success = () => {
+    messageApi.open({
+      key,
+      type: 'success',
+      content: '命令已发送！',
+    });
+  };
+
+  const error = () => {
+    messageApi.open({
+      key,
+      type: 'error',
+      content: '命令发送失败，请稍后再试！',
+    });
+  };
+
+  // 处理开关按钮点击
+  const handleToggleClick = async (deviceId, currentState) => {
+    const newState = !currentState;
+    console.log(`插孔 ${deviceId} 切换至: ${newState ? '开启' : '关闭'}`);
+
+    // 显示发送中的消息
+    sending();
+
+    // 直接调用云端API切换插孔状态
+    try {
+      await sendDeviceMessage(deviceId, newState ? 1 : 0);
+      console.log(`插孔 ${deviceId} 状态切换命令发送成功`);
+      success();
+    } catch (error) {
+      console.error(`插孔 ${deviceId} 状态切换命令发送失败:`, error);
+      error();
+    }
   };
 
   // 渲染设备卡片
@@ -145,12 +161,19 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
               </div>
             }
             extra={
-              <Switch
-                checked={isOpen}
-                onChange={(checked) => handleSwitchToggle(deviceId, checked)}
-                checkedChildren="开"
-                unCheckedChildren="关"
-                style={{ marginLeft: '8px' }}
+              <Button
+                onClick={() => handleToggleClick(deviceId, isOpen)}
+                shape="circle"
+                size="middle"
+                icon={<PoweroffOutlined />}  
+                className='button'
+                style={{ 
+                  color: isOpen ? '#ff4d4f' : '#52c41a',
+                  border: `1px solid ${isOpen ? '#ff4d4f' : '#52c41a'}`,
+                  backgroundColor: isOpen ? '#fff2f0' : '#f6ffed',
+                }}
+                hoverable
+                title={isOpen ? '关闭插孔' : '开启插孔'}
               />
             }
           >
@@ -187,6 +210,7 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
 
   return (
     <div className="device-container">
+      {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Title level={2} className='title'>
           设 备 详 细 信 息
