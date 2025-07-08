@@ -83,9 +83,9 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
       // TODO: 把英文的deviceType转换为中文
       displayDeviceType = deviceType;
     } else {
-      // 情况2: 插孔开启, 但是数据中功率为0, 设备类型显示无设备插入或设备未工作, 卡片为黄色
+      // 情况2: 插孔开启, 但是数据中功率为0, 设备类型显示无设备工作, 卡片为黄色
       cardColor = 'yellow';
-      displayDeviceType = "无设备插入或设备未工作";
+      displayDeviceType = "无设备工作";
     }
     
     // 获取卡片样式类名
