@@ -113,13 +113,13 @@ function App() {
     return `${month}月${day}日${hours}时${minutes}分${seconds}秒`;
   };
   
-  const temperatureAlert = () => {
+  const temperatureAlert = (currentTemperature) => {
     const alertKey = 'temperature-alert';
     
     api.warning({
       key: alertKey,
       message: `🔥 温度警告`,
-      description: `设备环境温度于${formatTime(Date.now())}过高，设备侧将切断所有插孔电源！请及时检查设备！`,
+      description: `设备环境温度于${formatTime(Date.now())}过高（${currentTemperature}°C），设备侧将切断所有插孔电源！请及时检查设备！`,
       placement: 'topRight',
       duration: 0, // 永不自动消失
       style: {
@@ -137,13 +137,13 @@ function App() {
     activeAlerts.current.add(alertKey);
   };
 
-  const powerAlert = (pluginId) => {
+  const powerAlert = (pluginId, currentPower) => {
     const alertKey = `power-alert-${pluginId}`;
     
     api.error({
       key: alertKey,
       message: `⚡ 功率警告`,
-      description: `插孔${pluginId}功率于${formatTime(Date.now())}过高，设备侧将切断该插孔电源！请及时检查设备！`,
+      description: `插孔${pluginId}功率于${formatTime(Date.now())}过高（${currentPower}W），设备侧将切断该插孔电源！请及时检查设备！`,
       placement: 'topRight',
       duration: 0, // 永不自动消失
       style: {
@@ -167,13 +167,13 @@ function App() {
     // MARK: 温度功率阈值
     // 温度警告检查
     const tempAlertKey = 'temperature-alert';
-    const shouldShowTempAlert = newTemperature > 85;
+    const shouldShowTempAlert = newTemperature > 50;
     const tempAlertExists = activeAlerts.current.has(tempAlertKey);
     const tempLastClosed = lastUserClosed.current.get(tempAlertKey) || 0;
     const tempCanReshow = now - tempLastClosed > 5000; // 5秒后可以重新显示
 
     if (shouldShowTempAlert && !tempAlertExists && tempCanReshow) {
-      temperatureAlert();
+      temperatureAlert(newTemperature);
       console.log('发送温度警告，温度:', newTemperature);
     }
     
@@ -194,7 +194,7 @@ function App() {
       const powerCanReshow = now - powerLastClosed > 5000; // 5秒后可以重新显示
 
       if (shouldShowPowerAlert && !powerAlertExists && powerCanReshow) {
-        powerAlert(pluginId);
+        powerAlert(pluginId, powerValue);
         console.log(`发送功率警告，插孔${pluginId}，功率:`, powerValue);
       }
       
@@ -219,9 +219,9 @@ function App() {
       const deviceData = await fetchCloudDeviceData();
       console.log('华为云获取数据成功');
       
-      // MARK: 检查调试
-      checkAlerts(deviceData.temperature, deviceData.power);
-      // checkAlerts(deviceData.humidity, deviceData.power);
+      // MARK: 调试
+      // checkAlerts(deviceData.temperature, deviceData.power);
+      checkAlerts(deviceData.humidity, deviceData.power);
       
       // 更新状态
       setOnlineDeviceNumber(deviceData.onlineDeviceNumber);
