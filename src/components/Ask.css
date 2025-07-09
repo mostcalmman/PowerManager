@@ -1,0 +1,95 @@
+/* Ask组件样式 */
+.ask-container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.ask-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.ask-title {
+  margin-bottom: 24px;
+  text-align: center;
+  color: #1890ff;
+}
+
+/* 表格行交替颜色 */
+.ant-table-tbody > tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.ant-table-tbody > tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.ant-table-tbody > tr:hover {
+  background-color: #e6f7ff !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ask-container {
+    padding: 12px;
+  }
+  
+  .ant-table-scroll {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .ask-container {
+    padding: 8px;
+  }
+  
+  .ask-title {
+    font-size: 18px;
+  }
+}
+
+/* 表格单元格样式优化 */
+.ant-table-cell {
+  vertical-align: middle;
+}
+
+/* 标签组样式 */
+.ant-space-vertical {
+  width: 100%;
+}
+
+/* 统计信息样式 */
+.ant-table-summary {
+  background-color: #f0f0f0;
+  font-weight: 500;
+}
+
+/* 表格边框样式 */
+.ant-table-bordered .ant-table-thead > tr > th,
+.ant-table-bordered .ant-table-tbody > tr > td,
+.ant-table-bordered .ant-table-tfoot > tr > th,
+.ant-table-bordered .ant-table-tfoot > tr > td {
+  border-color: #e8e8e8;
+}
+
+/* 滚动条样式 */
+.ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ant-table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

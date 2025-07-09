@@ -29,7 +29,7 @@ function SelectApp(props) {
   const currentPage = props.currentPage;
   const onNavigate = props.onNavigate;
   // const onRefreshData = props.onRefreshData;
-  const { pluginOnOff, pluginNumber, onlineDeviceNumber, power, temperature, humidity, deviceClass } = props;
+  const { pluginOnOff, pluginNumber, onlineDeviceNumber, power, temperature, humidity, deviceClass, historyDataQueue } = props;
 
   switch (currentPage) {
     case 'homepage':
@@ -65,6 +65,7 @@ function SelectApp(props) {
         humidity={humidity} 
         deviceClass={deviceClass} 
         pluginOnOff={pluginOnOff}
+        historyDataQueue={historyDataQueue}
       />;
     default:
       return <Homepage 
@@ -95,12 +96,19 @@ function App() {
   const [pluginNumber, setPluginNumber] = useState(1); // 插孔数量，默认1个
   const [pluginOnOff, setPluginOnOff] = useState([0]); // 插孔开关状态，默认1个, 关闭
 
+  // 历史数据队列 - 容量30，每分钟更新一次
+  const [historyDataQueue, setHistoryDataQueue] = useState([]);
+
   // 通知 API
   const [api, contextHolder] = notification.useNotification();
   
   // 使用 useRef 来存储警告状态
   const activeAlerts = useRef(new Set()); // 当前显示的警告
   const lastUserClosed = useRef(new Map()); // 用户关闭警告的时间记录
+  
+  // 用于记录每分钟内的报警信息
+  const currentMinuteAlerts = useRef([]);
+  const lastHistoryUpdate = useRef(Date.now());
   
   // 格式化时间为月日时分秒格式
   const formatTime = (timestamp) => {
@@ -115,6 +123,14 @@ function App() {
   
   const temperatureAlert = (currentTemperature) => {
     const alertKey = 'temperature-alert';
+    
+    // 记录报警信息到当前分钟
+    currentMinuteAlerts.current.push({
+      type: 'temperature',
+      message: `温度过高（${currentTemperature}°C）`,
+      timestamp: Date.now(),
+      pluginId: null
+    });
     
     api.warning({
       key: alertKey,
@@ -139,6 +155,14 @@ function App() {
 
   const powerAlert = (pluginId, currentPower) => {
     const alertKey = `power-alert-${pluginId}`;
+    
+    // 记录报警信息到当前分钟
+    currentMinuteAlerts.current.push({
+      type: 'power',
+      message: `插孔${pluginId}功率过高（${currentPower}W）`,
+      timestamp: Date.now(),
+      pluginId: pluginId
+    });
     
     api.error({
       key: alertKey,
@@ -210,6 +234,42 @@ function App() {
   // 用于防止重复调用的标记
   const hasCalledAPI = useRef(false);
 
+  // 更新历史数据队列的函数
+  const updateHistoryDataQueue = (currentData) => {
+    const now = Date.now();
+    
+    // 检查是否已经过了一分钟
+    if (now - lastHistoryUpdate.current >= 60000) { // 60000ms = 1分钟
+      const newHistoryEntry = {
+        timestamp: now,
+        pluginNumber: currentData.pluginNumber,
+        onlineDeviceNumber: currentData.onlineDeviceNumber,
+        devicePowers: [...currentData.power], // 每个设备的功率
+        totalPower: currentData.power.reduce((sum, p) => sum + p, 0), // 总功率
+        temperature: currentData.temperature,
+        humidity: currentData.humidity,
+        alerts: [...currentMinuteAlerts.current], // 这一分钟内的报警信息
+        formattedTime: formatTime(now)
+      };
+      
+      setHistoryDataQueue(prevQueue => {
+        const newQueue = [...prevQueue, newHistoryEntry];
+        // 保持队列容量为30
+        if (newQueue.length > 30) {
+          return newQueue.slice(-30);
+        }
+        return newQueue;
+      });
+      
+      // 重置当前分钟的报警记录
+      currentMinuteAlerts.current = [];
+      lastHistoryUpdate.current = now;
+      
+      console.log('历史数据队列已更新，当前长度:', historyDataQueue.length + 1);
+      console.log('新增历史记录:', newHistoryEntry);
+    }
+  };
+
   // 从云端获取数据的函数
   const fetchDataFromCloud = async () => {
     try {
@@ -232,28 +292,45 @@ function App() {
       setPluginNumber(deviceData.pluginNumber);
       setPluginOnOff(deviceData.pluginOnOff);
       
+      // 更新历史数据队列 - 传入最新的设备数据
+      updateHistoryDataQueue(deviceData);
+      
       console.log('App.js - 成功更新设备数据:', {
-        onlineDeviceNumber,
-        power,
-        temperature,
-        humidity,
-        deviceClass,
-        pluginNumber,
-        pluginOnOff
+        onlineDeviceNumber: deviceData.onlineDeviceNumber,
+        power: deviceData.power,
+        temperature: deviceData.temperature,
+        humidity: deviceData.humidity,
+        deviceClass: deviceData.deviceClass,
+        pluginNumber: deviceData.pluginNumber,
+        pluginOnOff: deviceData.pluginOnOff
       });
     } 
     catch (error) {
       console.log('华为云调用失败，原因:', error.message || error);
       console.error('华为云调用失败详细信息:', error);
       
-      // 直接使用默认值
-      setOnlineDeviceNumber(0);
-      setPower([0]);
-      setTemperature(25);
-      setHumidity(60);
-      setDeviceClass(["插孔断开"]);
-      setPluginNumber(1);
-      setPluginOnOff([0]);
+      // 创建默认数据对象
+      const defaultData = {
+        onlineDeviceNumber: 0,
+        power: [0],
+        temperature: 25,
+        humidity: 60,
+        deviceClass: ["插孔断开"],
+        pluginNumber: 1,
+        pluginOnOff: [0]
+      };
+      
+      // 使用默认值更新状态
+      setOnlineDeviceNumber(defaultData.onlineDeviceNumber);
+      setPower(defaultData.power);
+      setTemperature(defaultData.temperature);
+      setHumidity(defaultData.humidity);
+      setDeviceClass(defaultData.deviceClass);
+      setPluginNumber(defaultData.pluginNumber);
+      setPluginOnOff(defaultData.pluginOnOff);
+
+      // 即使失败也要更新历史数据队列 - 传入默认数据
+      updateHistoryDataQueue(defaultData);
 
       console.log('已设置默认值');
     }
@@ -321,6 +398,7 @@ function App() {
         deviceClass={deviceClass}
         pluginNumber={pluginNumber}
         pluginOnOff={pluginOnOff}
+        historyDataQueue={historyDataQueue}
       />
 
       <Footer style={{ textAlign: 'center', }}>

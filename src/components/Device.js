@@ -81,7 +81,56 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
       // 情况3: 插孔开启, 数据中功率非0, 设备类型显示数据中的对应类型, 卡片为绿色
       cardColor = 'green';
       // TODO: 把英文的deviceType转换为中文
-      displayDeviceType = deviceType;
+      // displayDeviceType = deviceType;
+      switch (deviceType) {
+        case "Air Conditioner":
+          displayDeviceType = "空调";
+          break;
+        case "TV":
+          displayDeviceType = "电视";
+          break;
+        case "Predicting":
+          displayDeviceType = "预测中...";
+          break;
+        case "Refrigerator":
+          displayDeviceType = "冰箱";
+          break;
+        case "Unknown":
+          displayDeviceType = "未知设备";
+          break;
+        case "Hair Dryer":
+          displayDeviceType = "吹风机";
+          break;
+        case "Charger":
+          displayDeviceType = "充电器";
+          break;
+        case "(Idle/Off)":
+          displayDeviceType = "待机";
+          break;
+        case "Kettle":
+          displayDeviceType = "电热水壶";
+          break;
+        case "Microwave":
+          displayDeviceType = "微波炉";
+          break;
+        case "Heater":
+          displayDeviceType = "电暖气";
+          break;
+        case "Computer":
+          displayDeviceType = "电脑";
+          break;
+        case "Fan":
+          displayDeviceType = "风扇";
+          break;
+        case "LED Light":
+          displayDeviceType = "LED灯";
+          break;
+        case "Error":
+          displayDeviceType = "位置设备";
+          break;
+        default:
+          displayDeviceType = deviceType; // 保持原样
+      }
     } else {
       // 情况2: 插孔开启, 但是数据中功率为0, 设备类型显示无设备工作, 卡片为黄色
       cardColor = 'yellow';
