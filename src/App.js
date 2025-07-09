@@ -102,13 +102,24 @@ function App() {
   const activeAlerts = useRef(new Set()); // 当前显示的警告
   const lastUserClosed = useRef(new Map()); // 用户关闭警告的时间记录
   
+  // 格式化时间为月日时分秒格式
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${month}月${day}日${hours}时${minutes}分${seconds}秒`;
+  };
+  
   const temperatureAlert = () => {
     const alertKey = 'temperature-alert';
     
     api.warning({
       key: alertKey,
       message: `🔥 温度警告`,
-      description: '设备环境温度过高，设备侧将切断所有插孔电源！请及时检查设备！',
+      description: `设备环境温度于${formatTime(Date.now())}过高，设备侧将切断所有插孔电源！请及时检查设备！`,
       placement: 'topRight',
       duration: 0, // 永不自动消失
       style: {
@@ -132,7 +143,7 @@ function App() {
     api.error({
       key: alertKey,
       message: `⚡ 功率警告`,
-      description: `插孔${pluginId}功率过高，设备侧将切断该插孔电源！请及时检查设备！`,
+      description: `插孔${pluginId}功率于${formatTime(Date.now())}过高，设备侧将切断该插孔电源！请及时检查设备！`,
       placement: 'topRight',
       duration: 0, // 永不自动消失
       style: {
@@ -156,7 +167,7 @@ function App() {
     // MARK: 温度功率阈值
     // 温度警告检查
     const tempAlertKey = 'temperature-alert';
-    const shouldShowTempAlert = newTemperature > 65;
+    const shouldShowTempAlert = newTemperature > 85;
     const tempAlertExists = activeAlerts.current.has(tempAlertKey);
     const tempLastClosed = lastUserClosed.current.get(tempAlertKey) || 0;
     const tempCanReshow = now - tempLastClosed > 5000; // 5秒后可以重新显示
@@ -166,18 +177,18 @@ function App() {
       console.log('发送温度警告，温度:', newTemperature);
     }
     
-    // 如果温度正常，自动关闭温度警告
-    if (!shouldShowTempAlert && tempAlertExists) {
-      api.destroy(tempAlertKey);
-      activeAlerts.current.delete(tempAlertKey);
-      console.log('温度恢复正常，自动关闭温度警告');
-    }
+    // // 如果温度正常，自动关闭温度警告
+    // if (!shouldShowTempAlert && tempAlertExists) {
+    //   api.destroy(tempAlertKey);
+    //   activeAlerts.current.delete(tempAlertKey);
+    //   console.log('温度恢复正常，自动关闭温度警告');
+    // }
     
     // 功率警告检查
     newPower.forEach((powerValue, index) => {
       const pluginId = index + 1;
       const powerAlertKey = `power-alert-${pluginId}`;
-      const shouldShowPowerAlert = powerValue > 2000;
+      const shouldShowPowerAlert = powerValue > 250;
       const powerAlertExists = activeAlerts.current.has(powerAlertKey);
       const powerLastClosed = lastUserClosed.current.get(powerAlertKey) || 0;
       const powerCanReshow = now - powerLastClosed > 5000; // 5秒后可以重新显示
@@ -187,12 +198,12 @@ function App() {
         console.log(`发送功率警告，插孔${pluginId}，功率:`, powerValue);
       }
       
-      // 如果功率正常，自动关闭该插孔的功率警告
-      if (!shouldShowPowerAlert && powerAlertExists) {
-        api.destroy(powerAlertKey);
-        activeAlerts.current.delete(powerAlertKey);
-        console.log(`功率恢复正常，自动关闭插孔${pluginId}功率警告`);
-      }
+      // // 如果功率正常，自动关闭该插孔的功率警告
+      // if (!shouldShowPowerAlert && powerAlertExists) {
+      //   api.destroy(powerAlertKey);
+      //   activeAlerts.current.delete(powerAlertKey);
+      //   console.log(`功率恢复正常，自动关闭插孔${pluginId}功率警告`);
+      // }
     });
   };
 
