@@ -1,5 +1,5 @@
 import React, {useState, useRef} from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, notification } from 'antd';
 
 import './App.css';
 import Homepage from './components/Homepage';
@@ -24,7 +24,6 @@ const components = [
     key: 'ask',
   },
 ];
-
 
 function SelectApp(props) {
   const currentPage = props.currentPage;
@@ -96,6 +95,107 @@ function App() {
   const [pluginNumber, setPluginNumber] = useState(1); // 插孔数量，默认1个
   const [pluginOnOff, setPluginOnOff] = useState([0]); // 插孔开关状态，默认1个, 关闭
 
+  // 通知 API
+  const [api, contextHolder] = notification.useNotification();
+  
+  // 使用 useRef 来存储警告状态
+  const activeAlerts = useRef(new Set()); // 当前显示的警告
+  const lastUserClosed = useRef(new Map()); // 用户关闭警告的时间记录
+  
+  const temperatureAlert = () => {
+    const alertKey = 'temperature-alert';
+    
+    api.warning({
+      key: alertKey,
+      message: `🔥 温度警告`,
+      description: '设备环境温度过高，设备侧将切断所有插孔电源！请及时检查设备！',
+      placement: 'topRight',
+      duration: 0, // 永不自动消失
+      style: {
+        backgroundColor: '#fff2e8',
+        border: '2px solid #ff7a00',
+      },
+      onClose: () => {
+        // 记录用户关闭时间
+        lastUserClosed.current.set(alertKey, Date.now());
+        activeAlerts.current.delete(alertKey);
+        console.log('用户关闭温度警告');
+      }
+    });
+    
+    activeAlerts.current.add(alertKey);
+  };
+
+  const powerAlert = (pluginId) => {
+    const alertKey = `power-alert-${pluginId}`;
+    
+    api.error({
+      key: alertKey,
+      message: `⚡ 功率警告`,
+      description: `插孔${pluginId}功率过高，设备侧将切断该插孔电源！请及时检查设备！`,
+      placement: 'topRight',
+      duration: 0, // 永不自动消失
+      style: {
+        backgroundColor: '#fff1f0',
+        border: '2px solid #ff4d4f',
+      },
+      onClose: () => {
+        // 记录用户关闭时间
+        lastUserClosed.current.set(alertKey, Date.now());
+        activeAlerts.current.delete(alertKey);
+        console.log(`用户关闭插孔${pluginId}功率警告`);
+      }
+    });
+    
+    activeAlerts.current.add(alertKey);
+  };
+  
+  const checkAlerts = (newTemperature, newPower) => {
+    const now = Date.now();
+    
+    // MARK: 温度功率阈值
+    // 温度警告检查
+    const tempAlertKey = 'temperature-alert';
+    const shouldShowTempAlert = newTemperature > 65;
+    const tempAlertExists = activeAlerts.current.has(tempAlertKey);
+    const tempLastClosed = lastUserClosed.current.get(tempAlertKey) || 0;
+    const tempCanReshow = now - tempLastClosed > 5000; // 5秒后可以重新显示
+
+    if (shouldShowTempAlert && !tempAlertExists && tempCanReshow) {
+      temperatureAlert();
+      console.log('发送温度警告，温度:', newTemperature);
+    }
+    
+    // 如果温度正常，自动关闭温度警告
+    if (!shouldShowTempAlert && tempAlertExists) {
+      api.destroy(tempAlertKey);
+      activeAlerts.current.delete(tempAlertKey);
+      console.log('温度恢复正常，自动关闭温度警告');
+    }
+    
+    // 功率警告检查
+    newPower.forEach((powerValue, index) => {
+      const pluginId = index + 1;
+      const powerAlertKey = `power-alert-${pluginId}`;
+      const shouldShowPowerAlert = powerValue > 2000;
+      const powerAlertExists = activeAlerts.current.has(powerAlertKey);
+      const powerLastClosed = lastUserClosed.current.get(powerAlertKey) || 0;
+      const powerCanReshow = now - powerLastClosed > 5000; // 5秒后可以重新显示
+
+      if (shouldShowPowerAlert && !powerAlertExists && powerCanReshow) {
+        powerAlert(pluginId);
+        console.log(`发送功率警告，插孔${pluginId}，功率:`, powerValue);
+      }
+      
+      // 如果功率正常，自动关闭该插孔的功率警告
+      if (!shouldShowPowerAlert && powerAlertExists) {
+        api.destroy(powerAlertKey);
+        activeAlerts.current.delete(powerAlertKey);
+        console.log(`功率恢复正常，自动关闭插孔${pluginId}功率警告`);
+      }
+    });
+  };
+
   // 用于防止重复调用的标记
   const hasCalledAPI = useRef(false);
 
@@ -107,6 +207,10 @@ function App() {
       // 直接调用华为云服务
       const deviceData = await fetchCloudDeviceData();
       console.log('华为云获取数据成功');
+      
+      // MARK: 检查调试
+      checkAlerts(deviceData.temperature, deviceData.power);
+      // checkAlerts(deviceData.humidity, deviceData.power);
       
       // 更新状态
       setOnlineDeviceNumber(deviceData.onlineDeviceNumber);
@@ -144,7 +248,6 @@ function App() {
     }
   };
 
-
   // 组件挂载时获取数据并设置定时器
   React.useEffect(() => {
     // 防止在 StrictMode 下重复调用
@@ -158,9 +261,12 @@ function App() {
       fetchDataFromCloud();
     }, 1000);
     
-    // 清理函数：组件卸载时清除定时器
+    // 清理函数：组件卸载时清除定时器和所有通知
     return () => {
       clearInterval(interval);
+      // 清除所有通知
+      api.destroy();
+      activeAlerts.current.clear();
     };
   }, []);
 
@@ -181,6 +287,7 @@ function App() {
   
   return (
     <Layout>
+      {contextHolder}
       <Header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Menu
           theme='dark'
