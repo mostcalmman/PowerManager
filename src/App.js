@@ -191,7 +191,7 @@ function App() {
     // MARK: 温度功率阈值
     // 温度警告检查
     const tempAlertKey = 'temperature-alert';
-    const shouldShowTempAlert = newTemperature > 50;
+    const shouldShowTempAlert = newTemperature > 28;
     const tempAlertExists = activeAlerts.current.has(tempAlertKey);
     const tempLastClosed = lastUserClosed.current.get(tempAlertKey) || 0;
     const tempCanReshow = now - tempLastClosed > 5000; // 5秒后可以重新显示
@@ -280,8 +280,8 @@ function App() {
       console.log('华为云获取数据成功');
       
       // MARK: 调试
-      // checkAlerts(deviceData.temperature, deviceData.power);
-      checkAlerts(deviceData.humidity, deviceData.power);
+      checkAlerts(deviceData.temperature, deviceData.power);
+      // checkAlerts(deviceData.humidity, deviceData.power);
       
       // 更新状态
       setOnlineDeviceNumber(deviceData.onlineDeviceNumber);
