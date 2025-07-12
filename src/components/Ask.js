@@ -1,16 +1,30 @@
-import React from 'react';
-import { Table, Card, Tag, Typography, Space, Tooltip } from 'antd';
+import React, { useState, useRef, useEffect } from 'react';
+import { Table, Card, Tag, Typography, Space, Tooltip, Input, Button, message, Spin, Row, Col, Divider, Image } from 'antd';
 import { 
   FireOutlined, 
   ThunderboltOutlined, 
   WarningOutlined,
-  CheckCircleOutlined 
+  CheckCircleOutlined,
+  SendOutlined,
+  UserOutlined,
+  ClearOutlined
 } from '@ant-design/icons';
+import AIService from '../services/aiService';
 import './Ask.css';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
-function Ask({ historyDataQueue }) {
+function Ask({ historyDataQueue, power, temperature, humidity, onlineDeviceNumber, pluginNumber }) {
+  // AI对话相关状态
+  const [chatHistory, setChatHistory] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const chatContainerRef = useRef(null);
+  
+  // 初始化AI服务
+  const aiService = useRef(new AIService());
+
   // 处理数据，最新的在最上面
   const dataSource = historyDataQueue ? [...historyDataQueue].reverse().map((item, index) => ({
     key: index,
@@ -161,54 +175,264 @@ function Ask({ historyDataQueue }) {
     },
   ];
 
+  // 自动滚动到聊天底部
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
+  // 发送消息
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) {
+      message.warning('请输入消息内容');
+      return;
+    }
+
+    const userMessage = inputValue.trim();
+    setInputValue('');
+    setIsLoading(true);
+
+    // 添加用户消息
+    const newUserMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: userMessage,
+      timestamp: new Date().toLocaleTimeString('zh-CN')
+    };
+
+    setChatHistory(prev => [...prev, newUserMessage]);
+
+    try {
+      // 准备设备数据
+      const deviceData = {
+        temperature,
+        humidity,
+        power,
+        onlineDeviceNumber,
+        pluginNumber,
+        historyDataQueue
+      };
+      
+      // 调用AI服务
+      const aiResponse = await aiService.current.callAI(userMessage, deviceData);
+      
+      // 添加AI回复
+      const newAIMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        content: aiResponse,
+        timestamp: new Date().toLocaleTimeString('zh-CN')
+      };
+
+      setChatHistory(prev => [...prev, newAIMessage]);
+    } catch (error) {
+      console.error('AI服务错误:', error);
+      message.error('AI回复失败，请稍后重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 清空聊天记录
+  const handleClearChat = () => {
+    setChatHistory([]);
+    message.success('聊天记录已清空');
+  };
+
+  // 快速提问按钮
+  const quickQuestions = [
+    '分析当前设备状态',
+    '功率使用是否正常？',
+    '温度情况如何？',
+    '给出优化建议',
+    '检查是否有异常'
+  ];
+
+  const handleQuickQuestion = (question) => {
+    setInputValue(question);
+  };
+
   return (
     <div className="ask-container">
-      <Card className="ask-card">
-        <Title level={2} className="ask-title">
-          <WarningOutlined style={{ marginRight: '8px' }} />
-          设备历史数据分析
-        </Title>
-        
-        <Table
-          dataSource={dataSource}
-          columns={columns}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => 
-              `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
-            pageSizeOptions: ['10', '20', '30'],
-          }}
-          scroll={{ 
-            x: 1200,
-            y: 'calc(100vh - 300px)'
-          }}
-          size="middle"
-          bordered
-          summary={() => (
-            <Table.Summary fixed>
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={2}>
-                  <strong>统计信息</strong>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={1}>
-                  <strong>{dataSource.length > 0 ? `${dataSource.length}条记录` : '暂无数据'}</strong>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2} colSpan={6}>
-                  {dataSource.length > 0 && (
-                    <Space>
-                      <span>平均总功率: {Math.round(dataSource.reduce((sum, item) => sum + item.totalPower, 0) / dataSource.length)}W</span>
-                      <span>平均温度: {Math.round(dataSource.reduce((sum, item) => sum + item.temperature, 0) / dataSource.length)}°C</span>
-                      <span>报警次数: {dataSource.reduce((sum, item) => sum + (item.alerts ? item.alerts.length : 0), 0)}</span>
-                    </Space>
-                  )}
-                </Table.Summary.Cell>
-              </Table.Summary.Row>
-            </Table.Summary>
-          )}
-        />
-      </Card>
+      <Row gutter={[16, 16]}>
+        {/* AI对话区域 */}
+        <Col xs={24} lg={12}>
+          <Card className="chat-card" title={
+            <Space>
+              <Image 
+                src="./DS_LOGO.jpg" 
+                alt="DeepSeek Logo" 
+                width={24} 
+                height={24} 
+                preview={false}
+                style={{ borderRadius: '4px' }}
+              />
+              <span>基于Deepseek的智能电源管理助手</span>
+              <Button 
+                size="small" 
+                icon={<ClearOutlined />} 
+                onClick={handleClearChat}
+                type="text"
+              >
+                清空
+              </Button>
+            </Space>
+          }>
+            {/* 聊天历史 */}
+            <div 
+              ref={chatContainerRef}
+              style={{ 
+                height: '400px', 
+                overflowY: 'auto', 
+                padding: '8px',
+                backgroundColor: '#fafafa',
+                borderRadius: '6px',
+                marginBottom: '12px'
+              }}
+            >
+              {chatHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>
+                  <Image 
+                    src="./DS_LOGO.jpg" 
+                    alt="DeepSeek Logo" 
+                    width={40} 
+                    height={40} 
+                    preview={false}
+                    style={{ borderRadius: '6px', marginBottom: '8px' }}
+                  />
+                  <div>我是电源管理智能助手，可以帮您分析设备数据</div>
+                </div>
+              ) : (
+                chatHistory.map(msg => (
+                  <div key={msg.id} style={{ marginBottom: '12px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start',
+                      flexDirection: msg.type === 'user' ? 'row-reverse' : 'row'
+                    }}>
+                      <div style={{ margin: '0 8px' }}>
+                        {msg.type === 'user' ? (
+                          <UserOutlined style={{ color: '#52c41a', fontSize: '16px' }} />
+                        ) : (
+                          <Image 
+                            src="./DS_LOGO.jpg" 
+                            alt="DeepSeek Logo" 
+                            width={16} 
+                            height={16} 
+                            preview={false}
+                            style={{ borderRadius: '2px' }}
+                          />
+                        )}
+                      </div>
+                      <div style={{
+                        background: msg.type === 'user' ? '#e6f7ff' : '#fff',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        maxWidth: '80%',
+                        border: '1px solid #d9d9d9'
+                      }}>
+                        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {msg.content}
+                        </div>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          color: '#999', 
+                          marginTop: '4px',
+                          textAlign: msg.type === 'user' ? 'right' : 'left'
+                        }}>
+                          {msg.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              {isLoading && (
+                <div style={{ textAlign: 'center', padding: '12px' }}>
+                  <Spin size="small" />
+                  <span style={{ marginLeft: '8px', color: '#999' }}>AI正在思考中...</span>
+                </div>
+              )}
+            </div>
+
+            {/* 快速提问按钮 */}
+            <div style={{ marginBottom: '12px' }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>快速提问：</Text>
+              <div style={{ marginTop: '4px' }}>
+                <Space wrap>
+                  {quickQuestions.map((question, index) => (
+                    <Button 
+                      key={index}
+                      size="small" 
+                      type="dashed"
+                      onClick={() => handleQuickQuestion(question)}
+                    >
+                      {question}
+                    </Button>
+                  ))}
+                </Space>
+              </div>
+            </div>
+
+            {/* 输入区域 */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <TextArea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="请输入您的问题，我会基于当前设备数据为您分析..."
+                autoSize={{ minRows: 2, maxRows: 4 }}
+                onPressEnter={(e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    handleSendMessage();
+                  }
+                }}
+              />
+              <Button 
+                type="primary" 
+                icon={<SendOutlined />}
+                onClick={handleSendMessage}
+                loading={isLoading}
+                style={{ alignSelf: 'flex-end' }}
+              >
+                发送
+              </Button>
+            </div>
+            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+              提示：按 Ctrl+Enter 快速发送
+            </div>
+          </Card>
+        </Col>
+
+        {/* 数据表格区域 */}
+        <Col xs={24} lg={12}>
+          <Card className="ask-card">
+            <Title level={3} className="ask-title">
+              <WarningOutlined style={{ marginRight: '8px' }} />
+              历史数据分析
+            </Title>
+            
+            <Table
+              dataSource={dataSource}
+              columns={columns}
+              pagination={{
+                pageSize: 8,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) => 
+                  `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
+                pageSizeOptions: ['8', '16', '24'],
+              }}
+              scroll={{ 
+                x: 800,
+                y: 'calc(50vh - 100px)'
+              }}
+              size="small"
+              bordered
+            />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }
