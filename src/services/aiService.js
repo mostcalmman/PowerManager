@@ -4,26 +4,32 @@
 export const AI_CONFIG = {
   // DeepSeek配置
   deepseek: {
-    apiKey: 'sk-c5fab6aa617a45b9b2ebe8c908aaadc0', // 您的DeepSeek API密钥
+    apiKey: 'sk-c5fab6aa617a45b9b2ebe8c908aaadc0', // DeepSeek API密钥
     apiUrl: 'https://api.deepseek.com/chat/completions',
     model: 'deepseek-chat',
     temperature: 0.7,
-    maxTokens: 500
+    maxTokens: 1500
   },
   
   // 系统提示词模板
-  systemPromptTemplate: `你是一个专业的电源管理系统智能助手。你需要基于以下设备数据为用户提供专业的分析和建议：
+  systemPromptTemplate: 
+    `
+    你是一个专业的电源管理系统智能助手。你正在与电源管理系统的用户对话，系统处于环境{deviceEnv}下，请在回答时注意。
+    
+    你需要基于以下设备数据为用户提供专业的分析和建议：
 
-{deviceContext}
+    {deviceContext}
 
-请注意：
-1. 当温度超过50°C时，提醒用户注意散热问题
-2. 当功率超过250W时，提醒用户检查设备负载
-3. 提供具体、实用的建议
-4. 保持专业但友好的语调
-5. 如果数据异常，要及时指出并给出解决方案
+    请注意：
+    1. 当温度超过65°C时，提醒用户注意散热问题
+    2. 当功率超过250W时，提醒用户检查设备负载
+    3. 综合考虑系统历史状态与当前状态，提供具体、实用的建议
+    4. 保持专业但友好的语调
+    5. 如果数据异常，要及时指出并给出解决方案
+    6. 你的内容展示不会经过markdown渲染，因此请直接输出普通文本，不要使用任何markdown语法。
 
-请简洁明了地回答用户问题。不要使用任何markdown语法`
+    请简洁明了地回答用户问题。
+    `
 };
 
 // AI API调用类
@@ -68,7 +74,7 @@ export class AIService {
     return context;
   }
   
-  // 调用AI API - 直接使用DeepSeek
+  // 调用 DeepSeek
   async callAI(userMessage, deviceData) {
     const deviceContext = this.generateDeviceContext(deviceData);
     const systemPrompt = this.config.systemPromptTemplate.replace('{deviceContext}', deviceContext);

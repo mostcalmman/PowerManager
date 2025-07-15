@@ -6,6 +6,9 @@ import './Homepage.css';
 function Homepage({ onNavigate ,onlineDeviceNumber, power, temperature, humidity }) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // 监听窗口宽度
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -37,11 +40,35 @@ function Homepage({ onNavigate ,onlineDeviceNumber, power, temperature, humidity
     onNavigate('ask');
   }
 
+  // 监听窗口大小变化
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 根据窗口宽度决定显示哪个标题
+  const getTitleText = () => {
+    return windowWidth >= 768 ? (
+      'Hi! 我是电源管理系统'
+    ) : (
+      <>
+        Hi! <br />
+        我是电源管理系统
+      </>
+    );
+  };
+  
   return (
     <div className="homepage-container">
       {/* 时钟模块 */}
       <div className="clock-container">
-        <h1 className="welcome-title">Hi! 我是电源管理系统</h1>
+        <h1 className="welcome-title">
+          {getTitleText()}
+        </h1>
         <div className="clock">
           <div className="time-display">
             {formatTime(currentTime)}

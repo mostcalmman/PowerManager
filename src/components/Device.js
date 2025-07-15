@@ -16,6 +16,9 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
   // 消息组件
   const [messageApi, contextHolder] = message.useMessage();
   const key = 'sending';
+  
+  // 监听窗口宽度
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const sending = () => {
     messageApi.open({
@@ -80,7 +83,6 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
     } else if (devicePower > 0 && deviceType) {
       // 情况3: 插孔开启, 数据中功率非0, 设备类型显示数据中的对应类型, 卡片为绿色
       cardColor = 'green';
-      // TODO: 把英文的deviceType转换为中文
       // displayDeviceType = deviceType;
       switch (deviceType) {
         case "Air Conditioner":
@@ -257,12 +259,27 @@ function Device({ onlineDeviceNumber, power, temperature, humidity, deviceClass,
     });
   }, [pluginNumber, power, deviceClass, temperature, humidity, pluginOnOff]);
 
+  // 监听窗口大小变化
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 根据窗口宽度决定显示哪个标题
+  const getTitleText = () => {
+    return windowWidth >= 768 ? '设 备 详 细 信 息' : '设备详细信息';
+  };
+
   return (
     <div className="device-container">
       {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Title level={2} className='title'>
-          设 备 详 细 信 息
+          {getTitleText()}
         </Title>
         <Title level={4}
           style={{ 

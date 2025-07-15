@@ -256,6 +256,35 @@ function Ask({ historyDataQueue, power, temperature, humidity, onlineDeviceNumbe
   return (
     <div className="ask-container">
       <Row gutter={[16, 16]}>
+        {/* 数据表格区域 */}
+        <Col xs={24} lg={12}>
+          <Card className="ask-card">
+            <Title level={3} className="ask-title">
+              <WarningOutlined style={{ marginRight: '8px' }} />
+              历史数据分析
+            </Title>
+            
+            <Table
+              dataSource={dataSource}
+              columns={columns}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: false,
+                // showQuickJumper: true,
+                showTotal: (total, range) => 
+                  `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
+                // pageSizeOptions: ['8', '16', '24'],
+              }}
+              scroll={{ 
+                x: 800,
+                y: false
+              }}
+              size="small"
+              bordered
+            />
+          </Card>
+        </Col>
+
         {/* AI对话区域 */}
         <Col xs={24} lg={12}>
           <Card className="chat-card" title={
@@ -348,6 +377,7 @@ function Ask({ historyDataQueue, power, temperature, humidity, onlineDeviceNumbe
                   </div>
                 ))
               )}
+
               {isLoading && (
                 <div style={{ textAlign: 'center', padding: '12px' }}>
                   <Spin size="small" />
@@ -401,35 +431,6 @@ function Ask({ historyDataQueue, power, temperature, humidity, onlineDeviceNumbe
             <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
               提示：按 Ctrl+Enter 快速发送
             </div>
-          </Card>
-        </Col>
-
-        {/* 数据表格区域 */}
-        <Col xs={24} lg={12}>
-          <Card className="ask-card">
-            <Title level={3} className="ask-title">
-              <WarningOutlined style={{ marginRight: '8px' }} />
-              历史数据分析
-            </Title>
-            
-            <Table
-              dataSource={dataSource}
-              columns={columns}
-              pagination={{
-                pageSize: 8,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total, range) => 
-                  `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
-                pageSizeOptions: ['8', '16', '24'],
-              }}
-              scroll={{ 
-                x: 800,
-                y: 'calc(50vh - 100px)'
-              }}
-              size="small"
-              bordered
-            />
           </Card>
         </Col>
       </Row>

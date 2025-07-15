@@ -239,7 +239,7 @@ function App() {
     const now = Date.now();
     
     // 检查是否已经过了一分钟
-    if (now - lastHistoryUpdate.current >= 60000) { // 60000ms = 1分钟
+    if (now - lastHistoryUpdate.current >= 1000) { // 60000ms = 1分钟
       const newHistoryEntry = {
         timestamp: now,
         pluginNumber: currentData.pluginNumber,
